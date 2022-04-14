@@ -1,0 +1,8 @@
+{
+  "name": "BluetoothScannerApp",
+  "displayName": "BluetoothScannerApp",
+
+  "expo": {
+"plugins": ["@config-plugins/react-native-ble-plx"]
+  }
+}
