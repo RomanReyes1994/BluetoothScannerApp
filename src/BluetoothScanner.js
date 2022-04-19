@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, Button, PermissionsAndroid, ImageBackground, Platform, TouchableOpacity, Linking, StyleSheet,  container, SafeAreaView, Image, AppRegistry, ScrollView, TextInput,  } from 'react-native';
+import { View, Text, FlatList, Button, PermissionsAndroid, ImageBackground, Alert, Platform, TouchableOpacity, Linking, StyleSheet,  container, SafeAreaView, Image, AppRegistry, ScrollView, TextInput, NativeModules, NativeEventEmitter,  } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
+const BleManagerModule = NativeModules.BleManager;
+const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 export const manager = new BleManager();
 
+
+  
 const requestPermission = async () => {
   const granted = await PermissionsAndroid.request(
     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
@@ -16,6 +20,9 @@ const requestPermission = async () => {
   );
   return (granted === PermissionsAndroid.RESULTS.GRANTED);
 }
+
+
+
 
 // BlueetoothScanner does:
 // - access/enable bluetooth module
@@ -41,6 +48,13 @@ const BluetoothScanner = () => {
     });
   }, [manager]);
 
+  const pressHandler = (id) => {
+  
+    alert('Connected')
+    console.log("Connected via Bluetooth to:", id);
+  
+  
+  }
   return (
     <ScrollView style={{flex:1, padding:10}}>
 <TouchableOpacity onPress={() => { Linking.openURL(`tel:4071111111`) }}
@@ -150,16 +164,36 @@ const BluetoothScanner = () => {
             return (true);
           }}
         />
+        
       </ScrollView>
-
       <ScrollView style={{flex:2, padding:10}}>
         <Text style={{fontWeight: "bold"}}>Scanned Devices ({deviceCount})</Text>
+        
         <FlatList
+        keyExtractor={(item) => item.id}
           data={Object.values(scannedDevices)}
-          renderItem={({item}) => {
-            return (<Text>{`${item.name} (${item.id})`}</Text>)
-          }}
+          renderItem={({item}) => (
+    
+            
+            
+            
+            <TouchableOpacity onPress={() => pressHandler(item.id)}>
+            <Text style={styles.inputB} >{`${item.name}`}
+            <Image 
+            style={styles.iconLeft} 
+            source={require('../assets/Bluetooth_icon.jpg')} 
+            />
+            
+            </Text>
+            
+            <Image 
+            style={styles.iconRight} 
+            source={require('../assets/Settings.jpg')} 
+            />
+            </TouchableOpacity>
+          )}
         />
+        
         <Button
           title="Scan Devices"
           onPress={async () => {
@@ -180,12 +214,14 @@ const BluetoothScanner = () => {
                   }
                   // found a bluetooth device
                   if (device) {
-                    console.log(`${device.name} (${device.id})}`);
+                    console.log(`${device.name}`);
                     const newScannedDevices = scannedDevices;
                     newScannedDevices[device.id] = device;
+                    
                     await setDeviceCount(Object.keys(newScannedDevices).length);
                     await setScannedDevices(scannedDevices);
                   }
+                  setTimeout(() => manager.stopDeviceScan(), 1000);
               });
             }
             return (true);
@@ -193,6 +229,7 @@ const BluetoothScanner = () => {
         />
       </ScrollView>
     </ScrollView>
+    
   );
 };
 
@@ -211,6 +248,17 @@ const styles = StyleSheet.create({
       backgroundColor: "black",
       flex: 1,
   },
+  iconLeft: {
+    width:20,
+    height:20,
+    
+},
+iconRight: {
+  width:40,
+  height:40,
+  left: 280,
+  
+},
   Group45text: {
       width: 400,
       height: 100,
@@ -234,6 +282,14 @@ const styles = StyleSheet.create({
       padding: 8,
       margin: 18,
       width: 280,
+},
+inputB: {
+  borderWidth: 1,
+  borderColor: '#777',
+  fontSize: 18,
+  padding: 8,
+  margin: 18,
+  width: 220,
 },
 input2: {
   borderWidth: 1,
